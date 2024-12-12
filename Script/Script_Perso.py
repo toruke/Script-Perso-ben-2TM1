@@ -3,10 +3,25 @@ import pandas as pd
 
 class StockManager:
     def __init__(self):
+        """Initialise un gestionnaire de stocks.
+
+            PRE: Aucune.
+            POST: Initialise un objet `StockManager` avec un attribut `data` sous forme d'un DataFrame vide.
+            """
         self.data = pd.DataFrame()
 
     def load_files(self, folder_path):
-        """Charge tous les fichiers CSV d'un dossier dans une seule base de données."""
+        """Charge tous les fichiers CSV d'un dossier dans une seule base de données.
+
+    PRE:
+        - `folder_path` est une chaîne de caractères représentant un chemin valide vers un dossier contenant des fichiers CSV.
+        - Les fichiers CSV doivent avoir un format correct (colonnes compatibles).
+
+    POST:
+        - Les fichiers CSV sont concaténés en un seul DataFrame stocké dans `self.data`.
+        - Un message de succès est affiché.
+        - En cas d'erreur (dossier inexistant, fichiers absents ou illisibles), une exception est levée et un message d'erreur est affiché.
+        """
         try:
             all_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.csv')]
             dataframes = [pd.read_csv(file) for file in all_files]
@@ -16,7 +31,17 @@ class StockManager:
             print(f"Erreur lors du chargement des fichiers : {e}")
 
     def search(self, column, value):
-        """Recherche dans les données consolidées."""
+        """Recherche dans les données consolidées.
+
+        PRE:
+            - `column` est une chaîne correspondant au nom d'une colonne existante dans `self.data`.
+            - `value` est une chaîne représentant la valeur à rechercher dans la colonne.
+
+        POST:
+            - Affiche les lignes du DataFrame `self.data` où la valeur recherchée est présente (sans respecter la casse).
+            - Si la colonne n'existe pas, un message d'erreur est affiché.
+            - Si aucune correspondance n'est trouvée, un DataFrame vide est affiché.
+        """
         try:
             results = self.data[self.data[column].astype(str).str.contains(value, case=False, na=False)]
             print(results)
@@ -26,7 +51,17 @@ class StockManager:
             print(f"Erreur lors de la recherche : {e}")
 
     def generate_report(self, output_path):
-        """Génère un rapport récapitulatif sous forme de fichier CSV."""
+        """Génère un rapport récapitulatif sous forme de fichier CSV.
+
+        PRE:
+            - `self.data` doit contenir des colonnes nommées 'Catégorie', 'Quantité', et 'Prix Unitaire'.
+            - `output_path` est une chaîne représentant le chemin complet (avec extension `.csv`) où le fichier sera sauvegardé.
+
+        POST:
+            - Crée un fichier CSV contenant un rapport regroupé par 'Catégorie' avec la somme des quantités et la moyenne des prix unitaires.
+            - Enregistre le fichier au chemin spécifié dans `output_path`.
+            - En cas d'erreur (colonnes manquantes ou problème d'écriture), une exception est levée et un message d'erreur est affiché.
+        """
         try:
             summary = self.data.groupby('Catégorie').agg({
                 'Quantité': 'sum',
