@@ -1,12 +1,11 @@
 import unittest
 import os
-import sys
 import io
 from unittest.mock import patch
 import pandas as pd
 
 # Importez votre classe StockManager
-from Script.stock_manager import StockManager
+from main import StockManager
 
 
 class TestStockManager(unittest.TestCase):
@@ -98,7 +97,7 @@ class TestStockManager(unittest.TestCase):
             # Appelez la fonction main
             try:
                 # Vous devrez peut-être adapter cette ligne selon votre implémentation exacte
-                from Script.stock_manager import __name__, main
+                from __main__ import __name__, main
                 main()
             except SystemExit:
                 pass

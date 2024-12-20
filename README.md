@@ -43,7 +43,7 @@ Le **Stock Manager** est une application Python conçue pour gérer et analyser 
 
 1. Lancez le programme :
    ```bash
-   python stock_manager.py
+   python main.py
    ```
 
 2. Suivez les options affichées dans le menu principal :
