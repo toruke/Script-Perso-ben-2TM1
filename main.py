@@ -1,10 +1,7 @@
-import os
-import pandas as pd
-import logging
 import Script.StockManager as StockManager
 
 def main():
-    manager = StockManager
+    manager = StockManager.StockManager()
 
     while True:
         print("\nOptions :")
