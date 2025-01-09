@@ -1,7 +1,41 @@
 import Script.StockManager as StockManager
+import argparse as arg
+
 
 def main():
+    parser = arg.ArgumentParser(description="Gestionnaire de stock à partir de fichiers CSV.")
+
+    # Ajout des arguments
+    parser.add_argument('-l', '--load', type=str, help="Chemin du dossier contenant les fichiers CSV à charger.")
+    parser.add_argument('-s', '--search', nargs=2, metavar=('COLONNE', 'VALEUR'),
+                        help="Rechercher dans les stocks. Exemple : -s Produit 'Chaise'")
+    parser.add_argument('-r', '--report', type=str, help="Chemin du fichier de sortie pour générer le rapport.")
+    parser.add_argument('--shell', action='store_true',
+                        help="Lancer l'application en mode interactif (shell).")
+
+    args = parser.parse_args()
+
+    # Instancier le gestionnaire de stock
     manager = StockManager.StockManager()
+
+    # Exécuter les fonctionnalités en fonction des arguments
+    if args.load:
+        manager.load_files(args.load)
+        print(f"Fichiers CSV chargés depuis le dossier : {args.load}")
+
+    if args.search:
+        colonne, valeur = args.search
+        manager.search(colonne, valeur)
+        print(f"Recherche effectuée dans la colonne '{colonne}' pour la valeur '{valeur}'.")
+
+    if args.report:
+        manager.generate_report(args.report)
+        print(f"Rapport généré dans le fichier : {args.report}")
+
+    if args.shell:
+        shell(manager)
+
+def shell(manager):
 
     while True:
         print("\nOptions :")
