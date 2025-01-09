@@ -18,17 +18,26 @@ def main():
     # Instancier le gestionnaire de stock
     manager = StockManager.StockManager()
 
-    # Exécuter les fonctionnalités en fonction des arguments
+    # Vérifier si des fichiers ont été chargés
+    data_loaded = False
     if args.load:
         manager.load_files(args.load)
         print(f"Fichiers CSV chargés depuis le dossier : {args.load}")
+        data_loaded = True
 
+    # Vérification pour les autres options
     if args.search:
+        if not data_loaded:
+            print("Erreur : Vous devez d'abord charger des fichiers avec '--load' avant d'effectuer une recherche.")
+            return
         colonne, valeur = args.search
         manager.search(colonne, valeur)
         print(f"Recherche effectuée dans la colonne '{colonne}' pour la valeur '{valeur}'.")
 
     if args.report:
+        if not data_loaded:
+            print("Erreur : Vous devez d'abord charger des fichiers avec '--load' avant de générer un rapport.")
+            return
         manager.generate_report(args.report)
         print(f"Rapport généré dans le fichier : {args.report}")
 

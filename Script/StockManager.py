@@ -28,13 +28,15 @@ class StockManager:
             self.logger.error(f"Erreur lors de la recherche : {e}")
         return None  # Retourne None en cas d'erreur
 
-    def generate_report(self, output_path):
+    def generate_report(self, output_file):
         try:
-            summary = self.data.groupby('Catégorie').agg({
-                'Quantité': 'sum',
-                'Prix Unitaire': 'mean'
-            }).reset_index()
-            summary.to_csv(output_path, index=False)
-            print(f"Rapport généré : {output_path}")
+            # Créer le dossier si nécessaire
+            output_dir = os.path.dirname(output_file)
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+            # Générer le rapport
+            self.data.to_csv(output_file, index=False)
+            print(f"Rapport généré dans le fichier : {output_file}")
         except Exception as e:
             print(f"Erreur lors de la génération du rapport : {e}")
