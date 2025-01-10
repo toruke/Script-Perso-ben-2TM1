@@ -30,13 +30,17 @@ class StockManager:
 
     def generate_report(self, output_file):
         try:
-            # Créer le dossier si nécessaire
             output_dir = os.path.dirname(output_file)
             if not os.path.exists(output_dir):
+                print(f"Création du dossier de sortie : {output_dir}")
                 os.makedirs(output_dir)
 
-            # Générer le rapport
+            if self.data.empty:
+                print("Erreur : Aucune donnée à écrire dans le rapport.")
+                return
+
+            print(f"Écriture du rapport dans le fichier : {output_file}")
             self.data.to_csv(output_file, index=False)
-            print(f"Rapport généré dans le fichier : {output_file}")
+            print("Rapport généré avec succès.")
         except Exception as e:
             print(f"Erreur lors de la génération du rapport : {e}")
