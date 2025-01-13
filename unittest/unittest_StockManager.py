@@ -1,82 +1,62 @@
 import unittest
-import os
 import pandas as pd
-from Script.StockManager import StockManager  # Assure-toi que le chemin d'import est correct
+import os
+import shutil
+from Script.StockManager import StockManager  # Remplacez par le chemin de votre module si besoin
 
 
 class TestStockManager(unittest.TestCase):
-
     def setUp(self):
-        """Configuration avant chaque test : Création d'un environnement temporaire et d'un StockManager."""
+        # Configuration initiale
         self.manager = StockManager()
+        self.test_folder = "test_data"
+        self.test_output_folder = "test_output"
+        os.makedirs(self.test_folder, exist_ok=True)
+        os.makedirs(self.test_output_folder, exist_ok=True)
 
-        # Création d'un dossier temporaire avec des fichiers CSV pour les tests
-        self.test_dir = "test_data"
-        os.makedirs(self.test_dir, exist_ok=True)
+        # Création de fichiers CSV de test
+        data1 = pd.DataFrame({"id": [1, 2, 3], "name": ["Alice", "Bob", "Charlie"]})
+        data2 = pd.DataFrame({"id": [4, 5, 6], "name": ["Dave", "Eve", "Frank"]})
 
-        # Fichier 1
-        with open(os.path.join(self.test_dir, "stock1.csv"), "w") as f:
-            f.write("Produit,Catégorie,Quantité,Prix\n")
-            f.write("Chaise,Meubles,10,49.99\n")
-            f.write("Table,Meubles,5,89.99\n")
-
-        # Fichier 2
-        with open(os.path.join(self.test_dir, "stock2.csv"), "w") as f:
-            f.write("Produit,Catégorie,Quantité,Prix\n")
-            f.write("Canapé,Meubles,2,399.99\n")
-            f.write("Lit,Meubles,3,299.99\n")
-
-        # Chemin du rapport temporaire
-        self.report_file = "test_report.csv"
+        data1.to_csv(os.path.join(self.test_folder, "file1.csv"), index=False)
+        data2.to_csv(os.path.join(self.test_folder, "file2.csv"), index=False)
 
     def tearDown(self):
-        """Nettoyage après chaque test : Suppression des fichiers temporaires."""
-        # Supprimer les fichiers de test
-        for file in os.listdir(self.test_dir):
-            os.remove(os.path.join(self.test_dir, file))
-        os.rmdir(self.test_dir)
+        # Nettoyage des fichiers et dossiers de test
+        shutil.rmtree(self.test_folder)
+        shutil.rmtree(self.test_output_folder)
 
     def test_load_files(self):
-        """Test pour vérifier que les fichiers CSV sont chargés correctement."""
-        self.manager.load_files(self.test_dir)
-        self.assertIsNotNone(self.manager.data, "Les données ne devraient pas être vides après le chargement.")
-        self.assertEqual(len(self.manager.data), 4, "Le nombre total de lignes consolidées devrait être 4.")
-        self.assertListEqual(
-            list(self.manager.data.columns),
-            ["Produit", "Catégorie", "Quantité", "Prix"],
-            "Les colonnes chargées ne correspondent pas."
-        )
+        # Test de la méthode load_files
+        self.manager.load_files(self.test_folder)
+        self.assertEqual(len(self.manager.data), 6)  # Vérifie que 6 lignes sont chargées
 
-    def test_search_valid_column(self):
-        """Test de recherche dans une colonne existante."""
-        self.manager.load_files(self.test_dir)
-        results = self.manager.search("Produit", "Chaise")
-        self.assertIsNotNone(results, "Les résultats ne devraient pas être vides.")
-        self.assertEqual(len(results), 1, "La recherche devrait retourner exactement une ligne.")
-        self.assertEqual(results.iloc[0]["Produit"], "Chaise", "Le résultat devrait contenir 'Chaise'.")
+    def test_search(self):
+        # Test de la méthode search
+        self.manager.load_files(self.test_folder)
+        results = self.manager.search("name", "Alice")
+        self.assertEqual(len(results), 1)  # Vérifie qu'un seul résultat est trouvé
+        self.assertEqual(results.iloc[0]["name"], "Alice")  # Vérifie que le nom correspond
 
     def test_search_invalid_column(self):
-        """Test de recherche dans une colonne inexistante."""
-        self.manager.load_files(self.test_dir)
-        results = self.manager.search("Inexistant", "Valeur")
-        self.assertIsNone(results, "La recherche dans une colonne inexistante devrait retourner None.")
+        # Test de recherche dans une colonne inexistante
+        self.manager.load_files(self.test_folder)
+        results = self.manager.search("unknown_column", "Alice")
+        self.assertIsNone(results)  # Vérifie que la méthode retourne None
 
     def test_generate_report(self):
-        """Test pour vérifier que le rapport est généré correctement."""
-        self.manager.load_files(self.test_dir)
+        # Test de la méthode generate_report
+        self.manager.load_files(self.test_folder)
+        output_file = os.path.join(self.test_output_folder, "report.csv")
+        self.manager.generate_report(output_file)
 
-        # Assurer que les données sont présentes
-        self.assertFalse(self.manager.data.empty,
-                         "Les données ne devraient pas être vides avant la génération du rapport.")
+        self.assertTrue(os.path.exists(output_file))  # Vérifie que le fichier est créé
+        output_data = pd.read_csv(output_file)
+        self.assertEqual(len(output_data), 6)  # Vérifie que le rapport contient 6 lignes
 
-        # Appeler la méthode de génération du rapport
-        self.manager.generate_report(self.report_file)
+    def test_generate_report_empty(self):
+        # Test de la génération de rapport avec des données vides
+        output_file = os.path.join(self.test_output_folder, "empty_report.csv")
+        self.manager.generate_report(output_file)
+        self.assertFalse(os.path.exists(output_file))  # Vérifie que le fichier n'est pas créé
 
-        # Vérifier que le fichier a été créé
-        self.assertTrue(os.path.exists(self.report_file), "Le fichier de rapport devrait être créé.")
-
-    def test_generate_report_without_data(self):
-        """Test de génération de rapport sans données chargées."""
-        self.manager.generate_report(self.report_file)
-        self.assertFalse(os.path.exists(self.report_file),
-                         "Le fichier de rapport ne devrait pas être créé si aucune donnée n'est chargée.")
